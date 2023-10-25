@@ -1,0 +1,83 @@
+
+ 
+30 Jul by Rob in AndroidCompiling an Android Kernel
+This is a mashup of two tutorials that I’ve been reading the first is posted over at villainrom.co.uk (credited to zjr8) the other at blog.coralic.nl. They both describe the compilation of your own Android Kernel both focus on the HTC Hero as their example device.
+
+Compiling your own kernel allows you to make amendments to the core of Android. It allows you to include abilities not normally present in the stock kernel such as overclocking and BFS.
+
+Before we start compiling we are going to require the correct environment and tool set. Both tutorials suggest a Linux environment with the villainrom tutorial advising an x86 version over x64:
+
+For this guide I will be using Ubuntu 10.04 x86. I have had problems building android related software on x86_64 builds of ubuntu.
+
+Once you have your environment set we’re going to install the tools to allow us to build the kernel. Fire up your Terminal application and enter the following.
+
+1
+sudo apt-get install git-core gnupg sun-java5-jdk flex bison gperf libsdl-dev libesd0-dev libwxgtk2.6-dev build-essential zip curl libncurses5-dev zlib1g-dev
+If you get a complaint that sun-java5-jdk is not available your running a modern version of Linux which runs version 6 this should be fine except if you want to compile an AOSP kernel. If that’s the case then add the following to your apt source repositories
+
+1
+2
+3
+4
+5
+6
+<code>## Old repo added to obtain JDK 5
+deb http://us.archive.ubuntu.com/ubuntu/ jaunty main restricted
+deb http://us.archive.ubuntu.com/ubuntu/ jaunty-updates main restricted
+deb http://us.archive.ubuntu.com/ubuntu/ jaunty multiverse
+deb http://us.archive.ubuntu.com/ubuntu/ jaunty-updates multiverse
+</code>
+We now need to download and extract the Android NDK.
+
+Finally we’ll make a directory to store our kernel source in.
+
+1
+2
+mkdir KernelSource
+cd KernelSource
+We need to get a copy of the kernel source, here the two tutorials differ villainrom opt to clone a github repository of the source:
+
+1
+git clone git://github.com/behnaam/HeRo-2.6.29-GoDmOdE.git
+whilst Coralic opts to wget the files:
+
+1
+2
+3
+wget http://member.america.htc.com/download/RomCode/Source_and_Binaries/kernel_hero_0078c992.tar.bz2
+tar xvjf kernel_hero_0078c992.tar.bz2
+rm -rf kernel_hero_0078c992.tar.bz2
+It’s up to you how you want to get the source and I’m sure there are other Git Hubs and Compressed files else where on the internet.
+
+The Git Hub used is for the Hero and as such the .config file in the directory is for the Hero. If you’re not compiling for a Hero you can use the following instructions to extract your devices .config file using adb with your device connected to the PC:
+
+1
+2
+3
+adb pull /proc/config.gz .
+gunzip config.gz
+mv config .config
+Make sure you place the .config in the root directory of your kernel source files.
+
+We now set our environment variables ready to compile the kernel. These tell the make program what type of processor we’re using and what type of device it is:
+
+1
+2
+export ARCH=arm
+export CROSS_COMPILE=arm-eabi-
+The final environment variable we need is the location of our toolchain (The NDK from earlier), this depends on where you downloaded and extracted the folder too on your system, also be aware that version numbers may have changed from when this article was published:
+
+1
+export PATH=$PATH:~/android-ndk-r4/build/prebuilt/linux-x86/arm-eabi-4.4.0/bin
+We’re finally read to build the kernel, issue:
+
+1
+make
+or
+
+1
+make -jx
+where x is the number of processor cores.
+The final kernel will be outputted to arch/arm/boot and will be called zImage.
+
+That’s it you know have your own self compiled kernel for Android.
